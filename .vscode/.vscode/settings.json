@@ -1,0 +1,20 @@
+{
+  "files.exclude": {
+    Users\\davyk\\app\\mijnapp": true"C:\\
+
+  },
+  "search.useParentIgnoreFiles": true,
+  "search.useGlobalIgnoreFiles": tru
+  "editor.formatOnSave": true,
+  "editor.mouseWheelZoom": true,
+  "editor.formatOnPaste": true,
+  "editor.allowVariableFontsInAccessibilityMode": true,
+  "editor.codeActions.triggerOnFocusChange": true,
+  "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+  "editor.definitionLinkOpensInPeek": true,
+  "editor.gotoLocation.alternativeImplementationCommand": "editor.action.goToReferences",
+  "editor.gotoLocation.alternativeReferenceCommand": "editor.action.peekTypeDefinition",
+  "editor.gotoLocation.multipleDeclarations": "goto",
+  "editor.gotoLocation.multipleDefinitions": "gotoAndPeek",
+  "editor.gotoLocation.multipleImplementations": "goto"
+}

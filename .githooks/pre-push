@@ -1,0 +1,13 @@
+#!/bin/sh
+
+allowed_url="https://github.com/Lokoloko1444/davykunst.git"
+remote_name="$1"
+remote_url="$2"
+
+if [ "$remote_url" != "$allowed_url" ]; then
+  echo "Blocked push: remote '$remote_name' points to '$remote_url'." >&2
+  echo "This repo may only push to '$allowed_url'." >&2
+  exit 1
+fi
+
+exit 0

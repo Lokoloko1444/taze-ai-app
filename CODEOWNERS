@@ -1,0 +1,10 @@
+# Default owners for the repository.
+# Replace with the real GitHub handles if they differ.
+# Owners review release- and security-critical files first.
+* @lGo
+
+# Release and security files should always get explicit review.
+docs/ @lGo
+app.json @lGo
+package.json @lGo
+.github/ @lGo

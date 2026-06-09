@@ -1,0 +1,60 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "taze-app",
+  "main": "./cloudflare/worker.mjs",
+  "tsconfig": "./cloudflare/tsconfig.json",
+  "workers_dev": true,
+  "compatibility_date": "2026-04-12",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "assets": {
+    "directory": "./dist/",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ],
+    "not_found_handling": "single-page-application",
+    "html_handling": "auto-trailing-slash"
+  },
+  "vars": {
+    "NODE_ENV": "production",
+    "EXPO_PUBLIC_APP_URL": "https://app.taze.to",
+    "EXPO_PUBLIC_API_URL": "https://api.taze.to",
+    "EXPO_PUBLIC_DEMO_MODE": "false",
+    "RIA_MODEL": "gpt-5.4-mini",
+    "AI_MODEL": "gpt-5.4-mini",
+    "TAZE_WORKER_VERSION": "edge-dispatch-v5",
+    "CORS_ORIGINS": "https://taze.to,https://www.taze.to,https://demo.taze.to,https://platform.taze.to,https://app.taze.to,https://transport.taze.to,https://ai.taze.to,https://admin.taze.to,https://scan.taze.to,https://api.taze.to",
+    "RETURN_URL_ORIGINS": "https://taze.to,https://www.taze.to,https://demo.taze.to,https://app.taze.to,https://transport.taze.to,https://ai.taze.to,https://admin.taze.to,https://scan.taze.to",
+    "BREVO_ENABLED": "true",
+    "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_live_51TJIF0145aiqABLeEPxVrHDTflMMvW8USKROzGt0CV9zsQFPs8IQqgCu3O99risphE8w8no1pJn09aXmqkbz9ilE00TVvQusRD",
+    "EXPO_PUBLIC_SUPABASE_URL": "https://vidjdqrhdzzfeimoihda.supabase.co",
+    "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_cyi32nCV7wnDWtCP2oddwQ_mHr0G8n6",
+    "SUPABASE_URL": "https://vidjdqrhdzzfeimoihda.supabase.co",
+    "BREVO_LIST_ID": "2",
+    "BREVO_SENDER_EMAIL": "hello@taze.to",
+    "BREVO_SENDER_NAME": "Taze",
+    "STRIPE_PRICE_BUSINESS_ESSENTIAL_MONTH": "price_1TPGU8145aiqABLegnowhDZe",
+    "STRIPE_PRICE_BUSINESS_ESSENTIAL_QUARTER": "price_1TPGU8145aiqABLeE8OEj02c",
+    "STRIPE_PRICE_BUSINESS_ESSENTIAL_YEAR": "price_1TPGU9145aiqABLewQew0rpO",
+    "STRIPE_PRICE_BUSINESS_GROWTH_MONTH": "price_1TPGUA145aiqABLeFW3FqRZg",
+    "STRIPE_PRICE_BUSINESS_GROWTH_QUARTER": "price_1TPGUB145aiqABLePtN5dEY1",
+    "STRIPE_PRICE_BUSINESS_GROWTH_YEAR": "price_1TPGUC145aiqABLeJlzSvLFg",
+    "STRIPE_PRICE_BUSINESS_SCALE_MONTH": "price_1TPGUD145aiqABLeolPoB4J6",
+    "STRIPE_PRICE_BUSINESS_SCALE_QUARTER": "price_1TPGUE145aiqABLelLMsCP5R",
+    "STRIPE_PRICE_BUSINESS_SCALE_YEAR": "price_1TPGUE145aiqABLety0RwZnV",
+    "STRIPE_PRICE_BUSINESS_ENTERPRISE_MONTH": "price_1TPGUG145aiqABLekQxQrsrc",
+    "STRIPE_PRICE_BUSINESS_ENTERPRISE_QUARTER": "price_1TPGUG145aiqABLe8L1eYDN9",
+    "STRIPE_PRICE_BUSINESS_ENTERPRISE_YEAR": "price_1TPGUH145aiqABLeDmihfgzR",
+    "STRIPE_PRICE_PERSONAL_BASIC_MONTH": "price_1TPGUI145aiqABLeR5CzncLk",
+    "STRIPE_PRICE_PERSONAL_BASIC_QUARTER": "price_1TPGUJ145aiqABLe1RR6rZzD",
+    "STRIPE_PRICE_PERSONAL_BASIC_YEAR": "price_1TPGUK145aiqABLe5yKeusYs",
+    "STRIPE_PRICE_PERSONAL_PLUS_MONTH": "price_1TPGUL145aiqABLeYXq9iTzD",
+    "STRIPE_PRICE_PERSONAL_PLUS_QUARTER": "price_1TPGUM145aiqABLeIbi7TPph",
+    "STRIPE_PRICE_PERSONAL_PLUS_YEAR": "price_1TPGUM145aiqABLeD8cnFbRD",
+    "STRIPE_PRICE_PERSONAL_PREMIUM_MONTH": "price_1TPGUO145aiqABLe4WtkXex5",
+    "STRIPE_PRICE_PERSONAL_PREMIUM_QUARTER": "price_1TPGUO145aiqABLeCwlle2Zm",
+    "STRIPE_PRICE_PERSONAL_PREMIUM_YEAR": "price_1TPGUP145aiqABLe0HWXvx5K"
+  }
+}

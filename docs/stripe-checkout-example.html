@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Taze Stripe checkout example</title>
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --text: #0f172a;
+        --muted: #475569;
+        --primary: #0f766e;
+        --primary-strong: #115e59;
+        --border: #dbe4ee;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 24px 16px 40px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 20px;
+        margin-top: 16px;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+      }
+      button {
+        appearance: none;
+        border: 0;
+        border-radius: 12px;
+        background: var(--primary);
+        color: white;
+        padding: 12px 16px;
+        font-size: 15px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: var(--primary-strong);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 999px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Taze Stripe checkout example</h1>
+      <p class="muted">
+        Deze pagina gebruikt dezelfde backendroute als de app: <code>/api/stripe/create-checkout-session</code>.
+      </p>
+
+      <section class="card">
+        <h2>Business Essential</h2>
+        <p>Start met realtime voorraad, AI-herkenning en scanflows.</p>
+        <button id="checkout">Activeer pakket</button>
+        <p id="status" class="muted"></p>
+      </section>
+    </main>
+
+    <script>
+      const SERVER_BASE_URL = 'https://app.taze.to';
+      const PLAN_ID = 'business-essential';
+      const INTERVAL = 'month';
+      const status = document.getElementById('status');
+
+      document.getElementById('checkout').addEventListener('click', async () => {
+        status.textContent = 'Checkout aan het starten...';
+
+        try {
+          const response = await fetch(`${SERVER_BASE_URL}/api/stripe/create-checkout-session`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              planId: PLAN_ID,
+              interval: INTERVAL,
+              successUrl: 'https://app.taze.to/payments?checkout=success',
+              cancelUrl: 'https://app.taze.to/payments?checkout=cancel',
+            }),
+          });
+
+          const data = await response.json().catch(() => null);
+          if (!response.ok || !data || !data.url) {
+            status.textContent = (data && data.error) ? `Fout: ${data.error}` : 'Checkout kon niet worden gestart.';
+            return;
+          }
+
+          window.location.href = data.url;
+        } catch (error) {
+          console.error(error);
+          status.textContent = 'Netwerkfout. Controleer of de API live bereikbaar is.';
+        }
+      });
+    </script>
+  </body>
+</html>

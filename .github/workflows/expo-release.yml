@@ -1,0 +1,80 @@
+name: Expo Release
+
+run-name: Expo release - ${{ inputs.platform }} - submit=${{ inputs.auto_submit }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Target platform
+        type: choice
+        required: true
+        default: android
+        options:
+          - android
+          - ios
+          - both
+      auto_submit:
+        description: Auto-submit after each build finishes
+        type: boolean
+        required: true
+        default: false
+
+concurrency:
+  group: expo-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: EAS release
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+
+    permissions:
+      contents: read
+
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate Expo token
+        run: |
+          if [ -z "${EXPO_TOKEN:-}" ]; then
+            echo "Missing EXPO_TOKEN secret."
+            exit 1
+          fi
+          npx --yes eas-cli whoami
+
+      - name: Build and optionally submit with EAS
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          AUTO_SUBMIT: ${{ inputs.auto_submit }}
+        run: |
+          set -euo pipefail
+
+          if [ "$PLATFORM" = "both" ]; then
+            targets=("android" "ios")
+          else
+            targets=("$PLATFORM")
+          fi
+
+          for target in "${targets[@]}"; do
+            echo "Starting EAS release for ${target}."
+            cmd=(npx --yes eas-cli build --platform "$target" --profile production --non-interactive)
+            if [ "$AUTO_SUBMIT" = "true" ]; then
+              cmd+=(--auto-submit)
+            fi
+            "${cmd[@]}"
+          done

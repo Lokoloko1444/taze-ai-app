@@ -1,0 +1,10 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit",
+    "source.sortMembers": "explicit"
+  },
+  "files.autoSave": "onWindowChange",
+  "chatgpt.openOnStartup": true,
+  "github.copilot.chat.agentDebugLog.fileLogging.enabled": false
+}

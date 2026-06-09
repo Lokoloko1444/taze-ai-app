@@ -1,0 +1,21 @@
+title = "Taze gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allow placeholder secrets in examples and docs"
+paths = [
+  '''\.env\.example$''',
+  '''docs/.*\.md$'''
+]
+regexes = [
+  '''sk-(?:test|live)?\.\.\.''',
+  '''pk_(?:test|live)?\.\.\.''',
+  '''whsec_\.\.\.''',
+  '''xkeysib-\.\.\.''',
+  '''price_\.\.\.''',
+  '''YOUR_SUPABASE_SERVICE_ROLE_KEY''',
+  '''YOUR_SUPABASE_ANON_KEY''',
+  '''YOURPROJECT\.supabase\.co'''
+]

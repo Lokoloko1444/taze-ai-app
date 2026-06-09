@@ -1,0 +1,112 @@
+name: QA
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  baseline-and-smoke:
+    name: Baseline and smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run QA baseline
+        run: npm run qa:baseline
+
+      - name: Start production simulator
+        run: |
+          node ./scripts/start-prod-sim.js > /tmp/taze-prod-sim.log 2>&1 &
+          echo $! > /tmp/taze-prod-sim.pid
+
+      - name: Wait for simulator
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000/health >/tmp/taze-health.json; then
+              echo "Production simulator ready."
+              cat /tmp/taze-health.json
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Production simulator did not become ready."
+          cat /tmp/taze-prod-sim.log
+          exit 1
+
+      - name: Run smoke checks
+        env:
+          BASE_URL: http://127.0.0.1:3000
+        run: npm run smoke:server
+
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: dist
+          if-no-files-found: error
+
+      - name: Stop simulator
+        if: always()
+        run: |
+          if [ -f /tmp/taze-prod-sim.pid ]; then
+            kill "$(cat /tmp/taze-prod-sim.pid)" || true
+          fi
+
+  browser-e2e:
+    name: Browser E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs:
+      - baseline-and-smoke
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: dist
+
+      - name: Run browser QA
+        run: npm run qa:web
