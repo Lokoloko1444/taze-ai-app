@@ -4042,6 +4042,18 @@ type ProductionReadinessInput = {
   transportHealthScore: number;
 };
 
+function isExamplePlaceholder(value: string | null | undefined) {
+  const trimmed = String(value || '').trim().toLowerCase();
+  if (trimmed === 'example.com') return true;
+  try {
+    const candidate = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    const parsed = new URL(candidate);
+    return parsed.hostname === 'example.com' || parsed.hostname.endsWith('.example.com');
+  } catch {
+    return false;
+  }
+}
+
 function hasConfiguredValue(value: string | null | undefined) {
   if (typeof value !== 'string') return false;
   const trimmed = value.trim();
@@ -4051,7 +4063,7 @@ function hasConfiguredValue(value: string | null | undefined) {
     normalized.includes('replace_me') ||
     normalized.includes('yourproject') ||
     normalized.includes('your_supabase') ||
-    normalized.includes('example.com')
+    isExamplePlaceholder(normalized)
   );
 }
 
@@ -40787,4 +40799,3 @@ export function buildProductionReadinessUniquenessBoardReport(
     ...board.items.map((item) => `- ${item.label}: ${item.statusLabel} | ${item.detail}`),
   ].join('\n');
 }
-

@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 const OpenAI = require('openai');
 const Stripe = require('stripe');
 const { createClient: createSupabaseClient } = require('@supabase/supabase-js');
@@ -503,7 +504,8 @@ function normalizeKey(value) {
   return trimEnv(value)
     .toUpperCase()
     .replace(/[^A-Z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '');
+    .replace(/^_+/g, '')
+    .replace(/_+$/g, '');
 }
 
 function isLocalDevelopmentOrigin(origin) {
@@ -528,6 +530,11 @@ function isExistingDirectory(dirPath) {
   } catch {
     return false;
   }
+}
+
+function isPathWithinDirectory(baseDir, candidatePath) {
+  const relative = path.relative(baseDir, candidatePath);
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
 }
 
 function normalizeWebPath(value) {
@@ -617,16 +624,21 @@ function resolveWebUiFile(requestPath) {
 
   const normalized = normalizeWebPath(requestPath);
   const cleaned = normalized === '/' ? '' : normalized.slice(1);
+  const pathSegments = cleaned.split('/').filter(Boolean);
+  if (pathSegments.some((segment) => segment === '.' || segment === '..')) {
+    return null;
+  }
+  const safeRelativePath = pathSegments.join('/');
   const directCandidates = normalized === '/'
-    ? [path.join(distDir, 'index.html')]
+    ? [path.resolve(distDir, 'index.html')]
     : [
-        path.join(distDir, `${cleaned}.html`),
-        path.join(distDir, cleaned, 'index.html'),
-        path.join(distDir, cleaned),
+        path.resolve(distDir, `${safeRelativePath}.html`),
+        path.resolve(distDir, safeRelativePath, 'index.html'),
+        path.resolve(distDir, safeRelativePath),
       ];
 
   for (const candidate of directCandidates) {
-    if (isExistingFile(candidate)) {
+    if (isPathWithinDirectory(distDir, candidate) && isExistingFile(candidate)) {
       return candidate;
     }
   }
@@ -3054,6 +3066,24 @@ async function handleRefundDecision(req, res, action) {
 function createApp({ runtime = 'node', serveWebUi = true } = {}) {
   const app = express();
   const distDir = path.join(process.cwd(), 'dist');
+  const webUiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  const aiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  const recognizeLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
 
   app.disable('x-powered-by');
   app.use(
@@ -3127,24 +3157,31 @@ function createApp({ runtime = 'node', serveWebUi = true } = {}) {
         return;
       }
 
-      const webUiFile = resolveWebUiFile(req.path);
-      if (!webUiFile) {
-        next();
-        return;
-      }
-
-      res.sendFile(webUiFile, (error) => {
-        if (error) {
-          next(error);
+      webUiLimiter(req, res, (rateLimitError) => {
+        if (rateLimitError) {
+          next(rateLimitError);
+          return;
         }
+
+        const webUiFile = resolveWebUiFile(req.path);
+        if (!webUiFile) {
+          next();
+          return;
+        }
+
+        res.sendFile(webUiFile, (error) => {
+          if (error) {
+            next(error);
+          }
+        });
       });
     });
   }
 
-  app.post('/api/ai/copilot', handleCopilotRequest);
-  app.post('/api/ai/helpdesk', handleHelpdeskAiRequest);
+  app.post('/api/ai/copilot', aiLimiter, handleCopilotRequest);
+  app.post('/api/ai/helpdesk', aiLimiter, handleHelpdeskAiRequest);
 
-  app.post('/recognize', handleRecognizeRequest);
+  app.post('/recognize', recognizeLimiter, handleRecognizeRequest);
   app.post('/newsletter/subscribe', async (req, res) => {
     await handleNewsletterSubscribe(req, res, runtime);
   });

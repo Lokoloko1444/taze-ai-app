@@ -44,6 +44,18 @@ function loadEnvMap() {
   return merged;
 }
 
+function isExamplePlaceholder(value) {
+  const trimmed = String(value || '').trim().toLowerCase();
+  if (trimmed === 'example.com') return true;
+  try {
+    const candidate = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    const parsed = new URL(candidate);
+    return parsed.hostname === 'example.com' || parsed.hostname.endsWith('.example.com');
+  } catch {
+    return false;
+  }
+}
+
 function hasValue(value) {
   if (typeof value !== 'string') return false;
   const trimmed = value.trim();
@@ -53,7 +65,7 @@ function hasValue(value) {
     normalized.includes('yourproject') ||
     normalized.includes('your_supabase') ||
     normalized.includes('replace_me') ||
-    normalized.includes('example.com')
+    isExamplePlaceholder(normalized)
   ) {
     return false;
   }

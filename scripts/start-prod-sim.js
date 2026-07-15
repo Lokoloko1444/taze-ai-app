@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 
 const { applyRuntimeEnv, createApp } = require('../server-app');
 
@@ -74,6 +75,12 @@ async function main() {
 
   const apiApp = createApp({ runtime: 'node', serveWebUi: true });
   const app = express();
+  const webUiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
 
   app.use((req, res, next) => {
     if (isApiPath(req.path)) {
@@ -88,13 +95,20 @@ async function main() {
     if (isApiPath(req.path)) {
       return next();
     }
-    const preferredRootPath = fs.existsSync(path.join(distDir, 'index.html'))
-      ? path.join(distDir, 'index.html')
-      : path.join(distDir, 'app.html');
-    res.sendFile(preferredRootPath, (error) => {
-      if (error) {
-        next(error);
+    webUiLimiter(req, res, (rateLimitError) => {
+      if (rateLimitError) {
+        next(rateLimitError);
+        return;
       }
+
+      const preferredRootPath = fs.existsSync(path.join(distDir, 'index.html'))
+        ? path.join(distDir, 'index.html')
+        : path.join(distDir, 'app.html');
+      res.sendFile(preferredRootPath, (error) => {
+        if (error) {
+          next(error);
+        }
+      });
     });
   });
 

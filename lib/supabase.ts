@@ -5,13 +5,25 @@ import { getItem, removeItem, setItem } from 'lib/app-storage';
 const url = (process.env.EXPO_PUBLIC_SUPABASE_URL ?? '').trim();
 const anonKey = (process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '').trim();
 
+function isExamplePlaceholder(value: string) {
+  const trimmed = value.trim().toLowerCase();
+  if (trimmed === 'example.com') return true;
+  try {
+    const candidate = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    const parsed = new URL(candidate);
+    return parsed.hostname === 'example.com' || parsed.hostname.endsWith('.example.com');
+  } catch {
+    return false;
+  }
+}
+
 function isPlaceholder(value: string) {
   const normalized = value.toLowerCase();
   return (
     normalized.includes('yourproject') ||
     normalized.includes('your_supabase') ||
     normalized.includes('replace_me') ||
-    normalized.includes('example.com')
+    isExamplePlaceholder(normalized)
   );
 }
 

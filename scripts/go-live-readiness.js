@@ -45,6 +45,18 @@ function loadEnvMap() {
   return merged;
 }
 
+function isExamplePlaceholder(value) {
+  const trimmed = String(value || '').trim().toLowerCase();
+  if (trimmed === 'example.com') return true;
+  try {
+    const candidate = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    const parsed = new URL(candidate);
+    return parsed.hostname === 'example.com' || parsed.hostname.endsWith('.example.com');
+  } catch {
+    return false;
+  }
+}
+
 function hasConfiguredValue(value) {
   if (typeof value !== 'string') return false;
   const trimmed = value.trim();
@@ -54,7 +66,7 @@ function hasConfiguredValue(value) {
     normalized.includes('replace_me') ||
     normalized.includes('yourproject') ||
     normalized.includes('your_supabase') ||
-    normalized.includes('example.com')
+    isExamplePlaceholder(normalized)
   );
 }
 
@@ -80,6 +92,17 @@ function isStripeTestRestrictedKey(value) {
 
 function normalizedUrl(value) {
   return String(value || '').trim().replace(/\/+$/, '');
+}
+
+function parseConfiguredOrigins(value) {
+  return String(value || '')
+    .split(',')
+    .map((entry) => normalizedUrl(entry))
+    .filter(Boolean);
+}
+
+function hasOrigin(origins, expectedOrigin) {
+  return origins.includes(normalizedUrl(expectedOrigin));
 }
 
 function isLocalhostUrl(value) {
@@ -177,6 +200,8 @@ async function main() {
   const supabaseServiceRoleKey = String(env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
   const corsOrigins = env.CORS_ORIGINS || '';
   const returnOrigins = env.RETURN_URL_ORIGINS || '';
+  const corsOriginList = parseConfiguredOrigins(corsOrigins);
+  const returnOriginList = parseConfiguredOrigins(returnOrigins);
   const stripeSecret = String(env.STRIPE_SECRET_KEY || '').trim();
   const stripeWebhook = String(env.STRIPE_WEBHOOK_SECRET || '').trim();
   const stripePublishableKey = String(env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '').trim();
@@ -269,10 +294,10 @@ async function main() {
     ),
     buildCheck(
       'CORS / return origins',
-      corsOrigins.includes('https://app.taze.to') &&
-        returnOrigins.includes('https://app.taze.to') &&
-        corsOrigins.includes('https://taze.to') &&
-        returnOrigins.includes('https://taze.to'),
+      hasOrigin(corsOriginList, 'https://app.taze.to') &&
+        hasOrigin(returnOriginList, 'https://app.taze.to') &&
+        hasOrigin(corsOriginList, 'https://taze.to') &&
+        hasOrigin(returnOriginList, 'https://taze.to'),
       Boolean(corsOrigins || returnOrigins),
       `CORS_ORIGINS=${corsOrigins || '(leeg)'} | RETURN_URL_ORIGINS=${returnOrigins || '(leeg)'}`
     ),
