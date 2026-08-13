@@ -41,7 +41,7 @@
     "@react-navigation/bottom-tabs": "7.15.5",
     "@react-navigation/elements": "^2.9.14",
     "@react-navigation/native": "^7.1.33",
-    "@supabase/supabase-js": "^2.103.0",
+    "@supabase/supabase-js": "^2.108.2",
     "@types/react": "~19.2.10",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
