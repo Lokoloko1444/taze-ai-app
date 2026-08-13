@@ -68,7 +68,7 @@
     "expo-updates": "~55.0.24",
     "expo-web-browser": "~55.0.16",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.3.2",
+    "express-rate-limit": "^8.5.2",
     "helmet": "^8.1.0",
     "jspdf": "^2.5.1",
     "node": "^25.8.2",
